@@ -1,24 +1,42 @@
-fastapi
-uvicorn[standard]
-python-multipart
+# =========================
+# FastAPI and ASGI Server
+# =========================
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+python-multipart==0.0.20
 
-sqlalchemy
-psycopg2-binary
-alembic
+# =========================
+# Database & Migration
+# =========================
+SQLAlchemy==2.0.43
+psycopg2-binary==2.9.10
+alembic==1.16.4
 
-pydantic
-pydantic-settings
-python-dotenv
+# =========================
+# Validation & Configuration
+# =========================
+pydantic==2.11.7
+pydantic-settings==2.10.1
+python-dotenv==1.1.1
 
-python-jose[cryptography]
-passlib[bcrypt]
-bcrypt
+# =========================
+# Security & Hashing
+# =========================
+python-jose[cryptography]==3.5.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.3.0
 
-langchain
-langchain-core
-langchain-groq
-langgraph
-groq
+# =========================
+# LLM & Orchestration
+# =========================
+langchain==0.3.27
+langchain-core==0.3.75
+langchain-groq==0.3.8
+langgraph==0.6.7
+groq==0.31.1
 
-pypdf
-python-docx
+# =========================
+# Document / CV Parsing
+# =========================
+pypdf==6.0.0
+python-docx==1.2.0
