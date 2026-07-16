@@ -1,15 +1,12 @@
 import os
-import smtplib
 import random
 import string
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import requests
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "../../../.env"))
 
-GMAIL_USER = os.getenv("GMAIL_USER", "")
-GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "re_XHJJbdhp_33fjyGzHwUUsu65gfBZ7LZHf")
 
 
 def generate_otp(length: int = 6) -> str:
@@ -19,11 +16,11 @@ def generate_otp(length: int = 6) -> str:
 
 def send_otp_email(to_email: str, otp: str, admin_name: str = "Admin") -> bool:
     """
-    Send a 6-digit OTP to the given email address via Gmail SMTP.
+    Send a 6-digit OTP to the given email address via Resend HTTP API.
     Returns True on success, False on failure.
     """
-    if not GMAIL_USER or not GMAIL_APP_PASSWORD:
-        print("ERROR: GMAIL_USER or GMAIL_APP_PASSWORD not set in .env")
+    if not RESEND_API_KEY:
+        print("ERROR: RESEND_API_KEY not configured")
         return False
 
     subject = "Your Intervue.AI Admin Login OTP"
@@ -84,18 +81,27 @@ def send_otp_email(to_email: str, otp: str, admin_name: str = "Admin") -> bool:
     </html>
     """
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = f"Intervue.AI <{GMAIL_USER}>"
-    msg["To"] = to_email
-    msg.attach(MIMEText(html_body, "html"))
+    headers = {
+        "Authorization": f"Bearer {RESEND_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    # Resend free tier onboarding sender
+    payload = {
+        "from": "Intervue.AI <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body
+    }
 
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=5.0) as server:
-            server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
-            server.sendmail(GMAIL_USER, to_email, msg.as_string())
-        print(f"OTP email sent successfully to {to_email}")
-        return True
+        res = requests.post("https://api.resend.com/emails", headers=headers, json=payload, timeout=8.0)
+        if res.status_code in [200, 201]:
+            print(f"OTP email sent successfully via Resend to {to_email}")
+            return True
+        else:
+            print(f"Failed to send OTP email via Resend: {res.status_code} - {res.text}")
+            return False
     except Exception as e:
-        print(f"Failed to send OTP email: {e}")
+        print(f"Failed to connect to Resend API: {e}")
         return False
