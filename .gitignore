@@ -1,0 +1,34 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python / FastAPI
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment / Secret Keys
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Databases / Media / OS
+*.db
+*.sqlite3
+uploads/
+.DS_Store
+Thumbs.db
