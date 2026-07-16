@@ -57,9 +57,9 @@ async def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = D
         raise credentials_exception
     return admin
 
-@router.post("/login")
+@router.post("/login", response_model=Token)
 def login(payload: LoginPayload, db: Session = Depends(get_db)):
-    """Step 1: Verify credentials, generate OTP and send via email."""
+    """Verify credentials and issue JWT access token directly."""
     admin = db.query(Admin).filter(Admin.email == payload.email).first()
     if not admin or not verify_password(payload.password, admin.hashed_password):
         raise HTTPException(
@@ -68,19 +68,8 @@ def login(payload: LoginPayload, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Generate OTP and store with expiry
-    otp = generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
-    _otp_store[payload.email] = {"otp": otp, "expires_at": expires_at}
-    
-    # Send OTP email
-    sent = send_otp_email(to_email=admin.email, otp=otp, admin_name=admin.name)
-    if not sent:
-        print("\n" + "="*60)
-        print(f" [FALLBACK] SECURITY KEY: OTP FOR {admin.email} IS: {otp}")
-        print("="*60 + "\n")
-    
-    return {"otp_sent": True, "email": admin.email, "message": f"OTP sent to {admin.email}"}
+    access_token = create_access_token(data={"sub": admin.email, "role": admin.role})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/verify-otp", response_model=Token)
 def verify_otp(payload: OTPVerifyPayload, db: Session = Depends(get_db)):

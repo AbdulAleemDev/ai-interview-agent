@@ -95,11 +95,9 @@ export default function LoginPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.detail || "Incorrect email or password.");
       }
-      setStep("otp");
-      setOtp(["", "", "", "", "", ""]);
-      setOtpError("");
-      startTimer();
-      setTimeout(() => otpInputsRef.current[0]?.focus(), 100);
+      const data = await res.json();
+      sessionStorage.setItem("adminToken", data.access_token);
+      router.push("/admin-portal-secure/dashboard");
     } catch (err: any) {
       setErrorMsg(err.message || "Failed to connect to server.");
     } finally {
