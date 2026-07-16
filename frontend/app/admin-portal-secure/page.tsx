@@ -20,7 +20,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_BASE = "https://ai-interview-agent-production-93df.up.railway.app";
 
 export default function LoginPage() {
   const router = useRouter();
