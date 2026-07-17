@@ -33,6 +33,7 @@ class ResultOut(BaseModel):
     session_id: str
     candidate_name: str
     status: str
+    phase: str
     score: Optional[float]
     strengths: Optional[List[str]]
     weaknesses: Optional[List[str]]

@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from app.database.database import get_db
 from app.models.interview import InterviewSetup
@@ -86,7 +86,8 @@ def start_interview(payload: StartSessionRequest, db: Session = Depends(get_db))
     ai_greeting = f"Welcome, {payload.candidate_name}! Before we begin the technical screening, let's start with a brief calibration phase to establish a baseline. Could you please tell me about yourself in 2–3 sentences?"
 
     # --- DUPLICATE CANDIDATE CHECK ---
-    duplicate_filters = [InterviewSession.candidate_email == payload.candidate_email]
+    email_clean = payload.candidate_email.strip()
+    duplicate_filters = [func.lower(InterviewSession.candidate_email) == func.lower(email_clean)]
     if payload.candidate_phone and payload.candidate_phone.strip():
         duplicate_filters.append(InterviewSession.candidate_phone == payload.candidate_phone.strip())
     
@@ -95,7 +96,7 @@ def start_interview(payload: StartSessionRequest, db: Session = Depends(get_db))
     ).first()
     
     if existing:
-        matched_field = "email" if existing.candidate_email == payload.candidate_email else "phone number"
+        matched_field = "email" if existing.candidate_email.strip().lower() == email_clean.lower() else "phone number"
         raise HTTPException(
             status_code=409,
             detail=f"A candidate with this {matched_field} has already taken this interview. Each candidate is allowed only one attempt."
@@ -111,8 +112,8 @@ def start_interview(payload: StartSessionRequest, db: Session = Depends(get_db))
     session = InterviewSession(
         id=session_id,
         candidate_name=payload.candidate_name,
-        candidate_email=payload.candidate_email,
-        candidate_phone=payload.candidate_phone,
+        candidate_email=payload.candidate_email.strip(),
+        candidate_phone=payload.candidate_phone.strip() if payload.candidate_phone else None,
         status="active",
         phase="calibration",
         transcript=transcript,
@@ -597,6 +598,7 @@ def get_result(session_id: str, db: Session = Depends(get_db)):
         session_id=session.id,
         candidate_name=session.candidate_name,
         status=session.status,
+        phase=session.phase,
         score=session.score,
         strengths=session.strengths,
         weaknesses=session.weaknesses,

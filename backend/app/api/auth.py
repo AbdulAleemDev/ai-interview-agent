@@ -285,6 +285,24 @@ def train_interview(
     db.refresh(db_setup)
     return db_setup
 
+@router.delete("/delete-interview")
+def delete_interview(
+    current_user: Admin = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    db.query(InterviewSetup).delete()
+    
+    db_log = ActivityLogModel(
+        action="Deleted Interview Configuration",
+        category="training",
+        admin_name=current_user.name,
+        details="Recruiter deleted the active mock interview configuration to stop accepting new applications."
+    )
+    db.add(db_log)
+    db.commit()
+    return {"message": "Interview configuration deleted successfully"}
+
+
 @router.get("/candidates")
 def list_candidates(
     current_user: Admin = Depends(get_current_admin),
